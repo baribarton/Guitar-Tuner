@@ -1,0 +1,237 @@
+/*
+   Authors: Jabari Barton and Eduardo Sainos
+   
+   This program analyzes the frequency of a guitar chord and outputs whether the
+   guitar is tuned properly or not.
+   
+   Every time the button is pushed, the current frequency changes to the next one.
+   At the end of the frequency list, it returns to the beginning.
+*/
+double SAMPLES = 40;
+
+const int  buttonPin1 = PUSH1;    // left button
+const int  buttonPin2 = PUSH2;    // right button
+
+const int greenLED = GREEN_LED;   // green LED
+const int redLED = RED_LED;       // red LED
+
+//frequencies of each chord
+#define LOW_E   329.63
+#define B       246.94
+#define G       196.00
+#define D       146.83
+#define A       110.00
+#define HIGH_E  82.41
+
+char string[6] = {'E','B','G','D','A','e'};
+
+// index of the frequency array
+int index = -1;
+
+int leftButtonState = 0;         // current state of the button
+int rightButtonState = 0;         // current state of the button
+
+int lastRightButtonState = 1;     // previous state of the button
+int lastLeftButtonState = 1;     // previous state of the button
+
+/*
+   checks buttons that are pressed, changes the frequency, and activates
+   correct LED. Red LED for left button, green LED for the right button
+*/
+void buttonPressed(int buttonState, int lastButtonState, int LED) {
+
+  digitalWrite(greenLED, LOW);
+  digitalWrite(redLED, LOW);
+
+  // if the state has changed, increment the counter
+  if (buttonState == HIGH) {
+    setIndex(LED);
+    Serial.print("String: ");  
+    Serial.println(string[index]);
+    //    Serial.println(index);
+  } else {
+
+    //turn LED off
+    digitalWrite(LED, HIGH);
+  }
+}
+
+/*
+   ensures that the index is set properly
+*/
+void setIndex(int LED) {
+
+  if (LED == greenLED) {
+    if (index >= 5) {
+      index = 0;
+    } else {
+      index++;
+    }
+  } else {
+    if (index <= 0) {
+      index = 5;
+    } else {
+      index--;
+    }
+  }
+}
+
+void dispFreq(double freq)
+{
+  Serial.print("Current Frequency: ");
+  Serial.print(freq);
+  Serial.print(" Hz");
+  Serial.println();
+}
+
+double findFreq()
+{
+  long hTime;
+  long lTime;
+  double period;
+  double frequency =0;
+  double avgFreq;
+
+  for(int i =0; i<SAMPLES;i++)
+  {
+    hTime = pulseIn(A3,HIGH);
+    lTime = pulseIn(A3,LOW);
+    
+    period = hTime+lTime;
+    period = period/1000;
+    frequency += (1000/(period));
+  }
+
+  avgFreq = frequency/SAMPLES;
+  return avgFreq;
+}
+
+void setup() {
+  // initialize the button pin as a input:
+  pinMode(buttonPin2, INPUT_PULLUP);
+
+  // initialize the LED as an output:
+  pinMode(greenLED, OUTPUT);
+
+  // initialize the button pin as a input:
+  pinMode(buttonPin1, INPUT_PULLUP);
+
+  // initialize the LED as an output:
+  pinMode(redLED, OUTPUT);
+
+  // initialize serial communication:
+  Serial.begin(9600);
+}
+
+void loop() {
+  
+  // read the pushbutton input pin:
+  leftButtonState = digitalRead(buttonPin1);
+  rightButtonState = digitalRead(buttonPin2);
+
+  // compare the button states to their previous states
+  if (rightButtonState != lastRightButtonState) {
+    buttonPressed(rightButtonState, lastRightButtonState, greenLED);
+
+  } else if (leftButtonState != lastLeftButtonState) {
+    buttonPressed(leftButtonState, lastLeftButtonState, redLED);
+  }
+
+  if(index == 0)
+  {
+    double temp = findFreq();
+    dispFreq(temp);
+    if(temp <(LOW_E-20))
+    {
+      Serial.println("Needs to be tuned higher");
+    }
+    else if(temp>(LOW_E+20))
+    {
+      Serial.println("Needs to be tuned lower");
+    }
+
+    index++;
+  }
+
+  if (index ==1)
+  {
+    double temp = findFreq();
+    dispFreq(temp);
+    if(temp <(B-20))
+    {
+      Serial.println("Needs to be tuned higher");
+    }
+    else if(temp>(B+20))
+    {
+      Serial.println("Needs to be tuned lower");
+    } 
+    
+    return;
+  }
+  
+  if (index ==2)
+  {
+    double temp = findFreq();
+    dispFreq(temp);
+    if(temp <(G-20))
+    {
+      Serial.println("Needs to be tuned higher");
+    }
+    else if(temp>(G+20))
+    {
+      Serial.println("Needs to be tuned lower");
+    }
+
+  }
+
+  if (index ==3)
+  {
+    double temp = findFreq();
+    dispFreq(temp);
+    if(temp <(D-20))
+    {
+      Serial.println("Needs to be tuned higher");
+    }
+    else if(temp>(D+20))
+    {
+      Serial.println("Needs to be tuned lower");
+    }
+
+  }
+
+  if (index ==4)
+  {
+    double temp = findFreq();
+    dispFreq(temp);
+    if(temp <(A-20))
+    {
+      Serial.println("Needs to be tuned higher");
+    }
+    else if(temp>(A+20))
+    {
+      Serial.println("Needs to be tuned lower");
+    }
+    
+  }
+  
+  if (index ==5)
+  {
+    double temp = findFreq();
+    dispFreq(temp);
+    if(temp <(HIGH_E-20))
+    {
+      Serial.println("Needs to be tuned higher");
+    }
+    else if(temp>(HIGH_E+20))
+    {
+      Serial.println("Needs to be tuned lower");
+    }
+
+  }
+
+  // save the current state as the last state,
+  lastRightButtonState = rightButtonState;
+  lastLeftButtonState = leftButtonState;
+
+}
+
